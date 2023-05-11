@@ -1,0 +1,481 @@
+<!--
+  artwork linking different realms
+    animation of a 3D object
+    split between different virtual spaces,
+in this case I have 2 pieces of pitcher one in webGl another in webXR
+  
+-->
+
+<!--
+TODO:
+   geolocalisation 
+
+-->
+<!--
+  Three.js r152
+  credits:
+  the credits and honour and love to all the contributors to Threejs and three-bvh-csg GUYS YOU ARE ROCKING!
+
+  "Liquid Splash 3" (https://skfb.ly/6UJSw) by MAMA's Sneaker Stop is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MilkmaidPitcher(S3)</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+
+    <link rel="stylesheet" type="text/css" href="main.css" />
+  </head>
+  <body>
+    <div id="loading">loading...</div>
+    <div id="output"></div>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../build/three.module.js",
+          "three/addons/": "../jsm/",
+          "three/loaders/": "../jsm/loaders/",
+          "three/draco": "../jsm/libs/draco",
+          "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@^0.5.22/build/index.module.js",
+          "three-bvh-csg": "https://unpkg.com/three-bvh-csg@^0.0.4/build/index.module.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { ARButton } from "three/addons/webxr/ARButton.js";
+      import { GUI } from "three/addons/libs/lil-gui.module.min.js";
+      import Stats from "three/addons/libs/stats.module.js";
+      import { Web3Storage } from "https://cdn.jsdelivr.net/npm/web3.storage/dist/bundle.esm.min.js";
+
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/loaders/GLTFLoader.js";
+      import { GLTFExporter } from "./jsm/exporters/GLTFExporter.js";
+      import { DRACOLoader } from "three/loaders/DRACOLoader.js";
+      import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js";
+      import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+      import { MeshSurfaceSampler } from "three/addons/math/MeshSurfaceSampler.js";
+      import {
+        Brush,
+        Evaluator,
+        //ADDITION,
+        SUBTRACTION,
+        INTERSECTION
+        //DIFFERENCE
+      } from "three-bvh-csg";
+
+      const params = {
+        operation: SUBTRACTION,
+        wireframe: false,
+        displayBrushes: false,
+        shadows: true,
+        useGroups: true,
+
+        randomize: () => {
+          updateCSG();
+        }
+      };
+
+      let stats, node;
+      let renderer, camera, scene, controls, gui, outputContainer;
+      let pitcherBrush, brush, brushes;
+      let material, surfaceSampler;
+      let resultObject, result;
+      let csgEvaluator = new Evaluator();
+      let isAR = false;
+
+      csgEvaluator.attributes = ["position", "normal"];
+      csgEvaluator.useGroups = false;
+
+      const materialMap = new Map();
+
+      async function exportGLTF(input) {
+        const gltfExporter = new GLTFExporter();
+
+        const options = {
+          trs: params.trs,
+          onlyVisible: params.onlyVisible,
+          binary: params.binary,
+          maxTextureSize: params.maxTextureSize
+        };
+        gltfExporter.parse(
+          input,
+          function (resultE) {
+            if (resultE instanceof ArrayBuffer) {
+              saveArrayBuffer(resultE, "scene.glb");
+            } else {
+              const output = JSON.stringify(resultE, null, 2);
+              console.log(output);
+              saveString(output, "scene.gltf");
+            }
+          },
+          function (error) {
+            console.log("An error happened during parsing", error);
+          },
+          options
+        );
+      }
+      const link = document.createElement("a");
+      link.style.display = "none";
+      document.body.appendChild(link); // Firefox workaround, see #6594
+
+      async function showMessage(text) {
+        //console.log("text", text);
+        node = document.createElement("div");
+        node.id = "node";
+        node.innerText = text;
+        if (isAR) {
+          document.getElementById("overlayOutput").appendChild(node);
+        } else {
+          output.appendChild(node);
+        }
+      }
+
+      async function showLink(url) {
+        if (isAR) {
+          node = document.createElement("a");
+          node.id = "node-l";
+          node.href = url;
+          node.innerText = `> ${url}`;
+          document.getElementById("overlayOutput").appendChild(node);
+        } else {
+          node = document.createElement("a");
+          node.id = "node-l";
+          node.href = url;
+          node.innerText = `> ${url}`;
+          output.appendChild(node);
+        }
+      }
+
+      async function save(blob, filename) {
+        const files = [new File([blob], filename)];
+        console.log("files.....  ", files);
+        showMessage("> creating web3.storage client");
+        const token =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweEEzREM0OTFBMjAyMjMyOTkyNzgxQTQzNDc5YkY1MTkwREMyNTcyMDEiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2ODM0NjcwNzAxMjAsIm5hbWUiOiJwaXRjaGVyIn0.KTLl99_WrKZFfuDGrVzwVKyIzpPnq7T4T7AIkj3MN84"; //tokenInput.value;
+        const client = new Web3Storage({ token });
+        /*
+              showMessage(
+                "> chunking and hashing the 3D art object to calculate the Content ID of model.gltf"
+              );
+              */
+        //const files = new makeFileObjects();
+        console.log("nowe file:  ", files);
+        //alert("pause");
+        const cid = await client.put(files, {
+          onRootCidReady: (localCid) => {
+            //showMessage(`> locally calculated Content ID: ${localCid} `);
+            showMessage("> sending 3D model you make to web3.storage ");
+          },
+          onStoredChunk: (bytes) =>
+            showMessage(
+              `> sent ${bytes.toLocaleString()} bytes to web3.storage`
+            )
+        });
+        showMessage(`> web3.storage now hosting ${cid}`);
+        showMessage('so you can download your own "Milkmaids pitcher" from:');
+        showLink(`https://dweb.link/ipfs/${cid}`);
+        //}
+      }
+      /////////////////////////////////////////////////////////////
+      //}
+      function saveString(text, filename) {
+        save(new Blob([text], { type: "text/plain" }), filename);
+      }
+
+      function saveArrayBuffer(buffer, filename) {
+        save(
+          new Blob([buffer], { type: "application/octet-stream" }),
+          filename
+        );
+        console.log("files.....  ", files);
+      }
+
+      async function downloadPitcher(event) {
+        event.preventDefault();
+
+        console.log("download");
+        csgEvaluator.useGroups = params.useGroups;
+        result = csgEvaluator.evaluate(
+          pitcherBrush,
+          brush,
+          params.operation,
+          result
+        );
+
+        result.castShadow = true;
+        result.receiveShadow = true;
+        scene.add(result);
+        console.log(
+          "result....",
+          result,
+          "...is indexed...",
+          result.geometry.index
+        );
+        //const modelForDownload = result;
+
+        /////////////////////////////////
+        // Instantiate a exporter
+        exportGLTF(result);
+      }
+      init();
+      animate();
+
+      async function init() {
+        const output = document.querySelector("#output");
+
+        const downloadButton = document.createElement("button");
+        const textOnButton = document.createTextNode("get a 3D model");
+        downloadButton.appendChild(textOnButton);
+        document.body.appendChild(downloadButton);
+        downloadButton.addEventListener("mouseover", () => {
+          downloadButton.style.opacity = "1";
+        });
+        downloadButton.addEventListener("mouseout", () => {
+          downloadButton.style.opacity = "0.5";
+        });
+        downloadButton.addEventListener("click", downloadPitcher);
+        downloadButton.id = "download-button";
+
+        showMessage("> waiting for you to take a 3D snapshot of the object...");
+
+        outputContainer = document.getElementById("loading");
+
+        // renderer setup
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        //renderer.setClearColor(bgColor, 1);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.xr.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        document.body.appendChild(ARButton.createButton(renderer));
+        console.log("arbutton: ", ARButton);
+
+        // scene setup
+        scene = new THREE.Scene();
+        const texture = new THREE.TextureLoader().load(
+          "textures/landscape.jpg",
+          render
+        );
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+
+        // lights
+
+        const light1 = new THREE.DirectionalLight(0xffffff, 1);
+        light1.position.set(0, 2, 3);
+        scene.add(light1, new THREE.AmbientLight(0xb0bec5, 0.1));
+
+        // camera setup
+        camera = new THREE.PerspectiveCamera(
+          70,
+          window.innerWidth / window.innerHeight,
+          0.01,
+          20
+        );
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.autoRotate = true;
+        controls.target.set(0, 0, -1);
+        controls.update();
+
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath("../jsm/libs/draco/");
+        //console.log(dracoLoader);
+        const gltf = await new GLTFLoader()
+          .setDRACOLoader(dracoLoader)
+          .setMeshoptDecoder(MeshoptDecoder)
+          .loadAsync("../models/Pitcjer2100.glb");
+        const geometry = gltf.scene.children[0].geometry;
+
+        geometry.computeVertexNormals();
+        if (geometry) {
+          outputContainer.style.display = "none";
+        }
+
+        pitcherBrush = new Brush(geometry, new THREE.MeshStandardMaterial());
+        pitcherBrush.position.y = -0.5;
+        pitcherBrush.updateMatrixWorld();
+        pitcherBrush.receiveShadow = true;
+        pitcherBrush.rotation.x = 120 * (Math.PI / 180);
+        pitcherBrush.rotation.y = 20 * (Math.PI / 180);
+        pitcherBrush.rotation.z = 190 * (Math.PI / 180);
+
+        pitcherBrush.position.set(0, 0, -3);
+        pitcherBrush.scale.set(0.5, 0.5, 0.5);
+
+        surfaceSampler = new MeshSurfaceSampler(pitcherBrush);
+        surfaceSampler.build();
+
+        const constance = THREE.AlwaysDepth;
+        pitcherBrush.material.depthFunc = "THREE.AlwaysDepth";
+        pitcherBrush.material.depthWrite = true;
+        pitcherBrush.material.polygonOffset = true;
+        pitcherBrush.material.polygonOffsetFactor = 0.1;
+        pitcherBrush.material.polygonOffsetUnits = 0.1;
+        pitcherBrush.material.side = THREE.DoubleSide;
+        pitcherBrush.material.color.set(0xff8659);
+        // add object displaying the result
+        resultObject = new THREE.Mesh(
+          new THREE.BufferGeometry(),
+          new THREE.MeshStandardMaterial({
+            roughness: 0.1,
+            flatShading: true,
+            polygonOffset: true,
+            polygonOffsetUnits: 1,
+            polygonOffsetFactor: 1
+          })
+        );
+        resultObject.material.transparent = false;
+        resultObject.castShadow = true;
+        resultObject.receiveShadow = true;
+        scene.add(resultObject);
+
+        dracoLoader.setDecoderPath("../jsm/libs/draco/");
+        const gltfbrush = await new GLTFLoader()
+          .setDRACOLoader(dracoLoader)
+          .setMeshoptDecoder(MeshoptDecoder)
+          .loadAsync("../models/fluid1300tr.glb");
+
+        console.log("glbbrush", gltfbrush.scene.children[0].geometry);
+        const geometrybrush = gltfbrush.scene.children[0].geometry;
+        geometrybrush.computeVertexNormals();
+
+        brush = new Brush(
+          geometrybrush,
+          new THREE.MeshStandardMaterial({
+            color: 0x00cbff, //0x80cbc4,
+            opacity: 0.5,
+            polygonOffset: true,
+            polygonOffsetUnits: 1,
+            polygonOffsetFactor: 1
+          })
+        );
+        brush.scale.set(0.02, 0.02, 0.02);
+        brush.position.set(0.2, 0, -3);
+        brush.rotation.x = (90 * Math.PI) / 180;
+        brush.updateMatrixWorld();
+
+        //scene.add(brush);
+        renderer.xr.addEventListener("sessionstart", function () {
+          node = document.createElement("div");
+          node.id = "node";
+          node.innerText =
+            "> waiting for you to take a 3D snapshot of the object...";
+          document.getElementById("overlayOutput").appendChild(node);
+          console.log(node);
+          const ARbu = document.getElementById("ARButton");
+          document.getElementById("aroverlay").appendChild(ARbu);
+          const ARdownloadButton = document.getElementById("ARdownloadButton");
+          ARdownloadButton.addEventListener("click", downloadPitcher);
+
+          scene.background = null;
+          console.log(
+            "param.operation",
+            params.operation,
+            "scene back: ",
+            scene.background
+          );
+          if (params.operation === 1) {
+            params.operation = 4;
+          }
+          isAR = true;
+
+          updateCSG();
+        });
+
+        window.addEventListener(
+          "resize",
+          function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+          },
+          false
+        );
+      }
+
+      const updateCSG = () => {
+        if (pitcherBrush && brush) {
+          csgEvaluator.useGroups = params.useGroups;
+          result = csgEvaluator.evaluate(
+            pitcherBrush,
+            brush,
+            params.operation,
+            result
+          );
+
+          result.castShadow = true;
+          result.receiveShadow = true;
+          scene.add(result);
+        }
+      };
+      ////////////////////////////////////////////////////////////////////////////////////
+
+      /////////////////////////////////////////////////////////////////////////////////////////////
+
+      const rotatePitcher = () => {
+        if (pitcherBrush) {
+          const t = window.performance.now() + 9000;
+          pitcherBrush.rotation.z = t * -0.001;
+          pitcherBrush.updateMatrixWorld();
+        }
+        if (brush) {
+          const t = window.performance.now() + 9000;
+          brush.rotation.y = t * -0.0001;
+          brush.updateMatrixWorld();
+        }
+      };
+
+      function animate() {
+        renderer.setAnimationLoop(render);
+      }
+
+      function render() {
+        rotatePitcher();
+        updateCSG();
+        //if (controls) {
+        // controls.update();
+        // }
+
+        renderer.render(scene, camera);
+      }
+    </script>
+    <div id="overlay">
+      <h1 id="see-info" class="button" style="display: none;">...open info</h1>
+      <h1 id="high" class="high">
+        You are visiting an art installation 'milkmaid's pitcher' from the
+        'dystopia of imitation' series. You can see one part of the pitcher
+        here. The missing part is in AR. Currently available in browsers on
+        android devices.
+        <div id="myButton" class="button" onclick="hideButton()">
+          ...close info [x]
+        </div>
+
+        <script>
+          function hideButton() {
+            const button = document.getElementById("high");
+            button.style.display = "none";
+            const seeInfo = document.getElementById("see-info");
+            seeInfo.style.display = "block";
+            seeInfo.addEventListener("click", () => {
+              button.style.display = "block";
+              seeInfo.style.display = "none";
+            });
+            // Alternatively, you can remove the button from the DOM
+            // button.parentNode.removeChild(button);
+          }
+        </script>
+      </h1>
+    </div>
+  </body>
+</html>
