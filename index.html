@@ -22,7 +22,18 @@ TODO:
 <!DOCTYPE html>
 <html>
   <head>
-    <title>MilkmaidPitcher(S3)</title>
+    
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4PY4W9R7FJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4PY4W9R7FJ');
+</script>
+
+    <title>Milkmaid's Pitcher by Jarek Solecki</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
@@ -114,15 +125,7 @@ TODO:
           metadata.attributes.push({
             trait_type: "Longitude",
             value: crd.longitude
-          });
-
-          console.log(
-            "metadata: ",
-            metadata.attributes[1].value,
-            metadata.attributes[2].value,
-            metadata
-          );
-          //return crd;
+          });       
         }
 
         function error(err) {
@@ -159,8 +162,7 @@ TODO:
               saveArrayBuffer(resultE, "scene.glb");
             } else {
               const output = JSON.stringify(resultE, null, 2);
-              console.log("output gltf", output);
-              saveString(output, "scene.gltf");
+             saveString(output, "scene.gltf");
             }
           },
           function (error) {
@@ -174,7 +176,6 @@ TODO:
       document.body.appendChild(link); // Firefox workaround, see #6594
 
       async function showMessage(text) {
-        //console.log("text", text);
         node = document.createElement("div");
         node.id = "node";
         node.innerText = text;
@@ -203,15 +204,11 @@ TODO:
 
       async function save(blob, filename) {
         const file = [new File([blob], filename)];
-        //console.log("blob......", blob, "files.....  ", file);
         showMessage("> creating NFT.storage client");
         const token =
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGJhODFBQkJGOEJkQ0ZkMTA0QTE2RUU3NjU2MjAzMzQzN0UyQzgzMGMiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY4MzkyMDM2OTYxOCwibmFtZSI6Ik1pbGttYWlkJ3MgUGl0Y2hlciJ9.yIQyeuFRGZKiTLoCIKUCwHBaV5L6tSV97M-jfHgms1k";
 
         const client = new NFTStorage({ token: token });
-
-        // console.log("nowe file:  ", file);
-        //alert("pause");
         const metadata = {
           name: "Milkmaid's Pitcher",
           description:
@@ -253,13 +250,10 @@ TODO:
           new Blob([buffer], { type: "application/octet-stream" }),
           filename
         );
-        console.log("files.....  ", filename);
-      }
+         }
 
       async function downloadPitcher(event) {
         event.preventDefault();
-
-        console.log("download");
         csgEvaluator.useGroups = params.useGroups;
         result = csgEvaluator.evaluate(
           pitcherBrush,
@@ -271,14 +265,7 @@ TODO:
         result.castShadow = true;
         result.receiveShadow = true;
         scene.add(result);
-        console.log(
-          "result....",
-          result,
-          "...is indexed...",
-          result.geometry.index
-        );
-        //const modelForDownload = result;
-
+     
         /////////////////////////////////
         // Instantiate a exporter
         exportGLTF(result);
@@ -318,8 +305,7 @@ TODO:
         document.body.appendChild(renderer.domElement);
 
         document.body.appendChild(ARButton.createButton(renderer));
-        console.log("arbutton: ", ARButton);
-
+       
         // scene setup
         scene = new THREE.Scene();
         const texture = new THREE.TextureLoader().load(
@@ -350,7 +336,6 @@ TODO:
 
         const dracoLoader = new DRACOLoader();
         dracoLoader.setDecoderPath("../jsm/libs/draco/");
-        //console.log(dracoLoader);
         const gltf = await new GLTFLoader()
           .setDRACOLoader(dracoLoader)
           .setMeshoptDecoder(MeshoptDecoder)
@@ -406,7 +391,6 @@ TODO:
           .setMeshoptDecoder(MeshoptDecoder)
           .loadAsync("../models/fluid1300tr.glb");
 
-        console.log("glbbrush", gltfbrush.scene.children[0].geometry);
         const geometrybrush = gltfbrush.scene.children[0].geometry;
         geometrybrush.computeVertexNormals();
 
@@ -432,19 +416,12 @@ TODO:
           node.innerText =
             "> waiting for you to take a 3D snapshot of the object...";
           document.getElementById("overlayOutput").appendChild(node);
-          console.log(node);
           const ARbu = document.getElementById("ARButton");
           document.getElementById("aroverlay").appendChild(ARbu);
           const ARdownloadButton = document.getElementById("ARdownloadButton");
           ARdownloadButton.addEventListener("click", downloadPitcher);
 
           scene.background = null;
-          console.log(
-            "param.operation",
-            params.operation,
-            "scene back: ",
-            scene.background
-          );
           if (params.operation === 4) {
             params.operation = 1;
           }
