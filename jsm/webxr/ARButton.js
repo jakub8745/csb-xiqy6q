@@ -9,31 +9,6 @@ class ARButton {
         overlay.style.display = "none";
         document.body.appendChild(overlay);
 
-        /*
-        const svg = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "svg"
-        );
-        svg.setAttribute("width", 38);
-        svg.setAttribute("height", 38);
-        svg.style.position = "absolute";
-        svg.style.right = "20px";
-        svg.style.top = "calc(70% - 40px)";
-        svg.addEventListener("click", function () {
-          currentSession.end();
-        });
-        overlay.appendChild(svg);
-
-        const path = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "path"
-        );
-        path.setAttribute("d", "M 12,12 L 28,28 M 28,12 12,28");
-        path.setAttribute("stroke", "#fff");
-        path.setAttribute("stroke-width", 2);
-        svg.appendChild(path);
-        */
-
         const ARdownloadButton = document.createElement("button");
         ARdownloadButton.innerText = "get a 3D model";
         ARdownloadButton.id = "ARdownloadButton";
@@ -158,7 +133,7 @@ class ARButton {
     if ("xr" in navigator) {
       button.id = "ARButton";
       console.log("xr in navi display none?");
-      //button.style.display = "none";
+      button.style.display = "none";
 
       stylizeElement(button);
 
