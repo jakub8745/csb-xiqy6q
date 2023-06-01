@@ -515,13 +515,19 @@ TODO:
 
           const ARbu = document.getElementById("ARButton");
           document.getElementById("aroverlay").appendChild(ARbu);
-
-          const overlayOutput = document.createElement("p");
-          overlayOutput.innerText =
-            "> take a 3D static snapshot of this unique scuplpture";
+          /*
+          const overlayOutput = document.createElement("div");
           overlayOutput.id = "overlayOutput";
           overlayOutput.style = "bottom: 4em";
-          document.getElementById("aroverlay").appendChild(overlayOutput);
+*/
+          node = document.createElement("div");
+          node.id = "node";
+          //node.style = "bottom: 2em";
+          node.innerText =
+            "> take a 3D static snapshot of this unique scuplpture";
+          document.getElementById("overlayOutput").appendChild(node);
+
+          showMessage("> take a 3D snapshot of this unique scuplpture");
           ////
           const ARdownloadButton = document.getElementById("ARdownloadButton");
 
