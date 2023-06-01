@@ -107,3 +107,9 @@ div #node-l {
   bottom: calc(13% - 40px);
   left: calc(50% - 40px);
 }
+
+#gizmo-icon {
+  position: relative;
+  width: 1.5em;
+  top: 0.3em;
+}
