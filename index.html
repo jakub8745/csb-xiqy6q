@@ -601,12 +601,18 @@ TODO:
                      */
       }
     </script>
+
     <div id="overlay">
       <p>
         <button id="screenshot" style="display: none;">b</button>
       </p>
+
       <h1 id="see-info" class="button" style="display: none;">...open info</h1>
-      <h1 id="high" class="high">
+
+      <h2 id="high" class="high">
+        <p id="myButton" class="button" onclick="hideButton()">
+          ...close info [x]
+        </p>
         The "Milkmaid's pitcher" is an animated sculpture divided by a low poly
         model of a milk splash. The concept is to place each of its parts in a
         different "digital reality". Currently in 3d [webGl] and AR [webXR]. You
@@ -626,9 +632,6 @@ TODO:
             src="/textures/galleryLogoButton.png"
         /></a>
 
-        <div id="myButton" class="button" onclick="hideButton()">
-          ...close info [x]
-        </div>
         <!--<a
           href="https://twitter.com/intent/tweet?screen_name=DystopiaofI&ref_src=twsrc%5Etfw"
           class="twitter-mention-button"
@@ -655,7 +658,7 @@ TODO:
             // button.parentNode.removeChild(button);
           }
         </script>
-      </h1>
+      </h2>
     </div>
   </body>
 </html>

@@ -9,6 +9,7 @@
   font-size: small;
   opacity: 0.5;
 }
+
 #overlay {
   position: absolute;
   display: flex;
