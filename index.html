@@ -13,7 +13,7 @@ TODO:
 
 -->
 <!--
-  Three.js r152
+  Three.js r157dev 
   credits:
   the credits and honour and love to all the contributors to Threejs and three-bvh-csg GUYS YOU ARE ROCKING!
 
@@ -69,7 +69,7 @@ TODO:
     <script type="importmap">
       {
         "imports": {
-          "three": "../build/three.module.js",
+          "three": "../build/three.module.min.js",
           "three/addons/": "../jsm/",
           "three/loaders/": "../jsm/loaders/",
           "three/draco": "../jsm/libs/draco",
@@ -394,9 +394,9 @@ TODO:
 
         // lights
 
-        const light1 = new THREE.DirectionalLight(0xffffff, 1);
+        const light1 = new THREE.DirectionalLight(0xffffff, 4);
         light1.position.set(0, 2, 3);
-        scene.add(light1, new THREE.AmbientLight(0xb0bec5, 0.1));
+        scene.add(light1, new THREE.AmbientLight(0xb0bec5, 1));
 
         // camera setup
         camera = new THREE.PerspectiveCamera(
@@ -568,13 +568,6 @@ TODO:
         updateCSG();
 
         renderer.render(scene, camera);
-        /*
-                     if (getARImageData == true) {
-                       renderer.preserveDrawingBuffer = true;
-                       getARScreenshot();
-                       getARImageData = false;
-                     }
-                     */
       }
     </script>
 
@@ -608,13 +601,6 @@ TODO:
             src="/textures/galleryLogoButton.png"
         /></a>
 
-        <!--<a
-          href="https://twitter.com/intent/tweet?screen_name=DystopiaofI&ref_src=twsrc%5Etfw"
-          class="twitter-mention-button"
-          data-show-count="false"
-          >Tweet to @DystopiaofI</a
-        >
-        -->
         <script
           async
           src="https://platform.twitter.com/widgets.js"
