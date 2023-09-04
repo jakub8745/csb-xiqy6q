@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!--
     animation of a 3D object
     split between different virtual spaces,
@@ -19,7 +20,6 @@ TODO:
   "Liquid Splash 3" (https://skfb.ly/6UJSw) by MAMA's Sneaker Stop is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 -->
 
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -73,8 +73,8 @@ TODO:
           "three/addons/": "../jsm/",
           "three/loaders/": "../jsm/loaders/",
           "three/draco": "../jsm/libs/draco",
-          "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@^0.5.22/build/index.module.js",
-          "three-bvh-csg": "https://unpkg.com/three-bvh-csg@^0.0.4/build/index.module.js"
+          "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@^0.6.6/build/index.module.js",
+          "three-bvh-csg": "https://unpkg.com/three-bvh-csg@^0.0.10/build/index.module.js"
         }
       }
     </script>
@@ -329,30 +329,6 @@ TODO:
           a.click();
         };
       })();
-
-      const captureWebGLContent = (gl) => {
-        const dataURL = gl.canvas.toDataURL("image/png");
-        window.location.href = dataURL;
-      };
-      /////////
-
-      const captureWebGLContentxx = (canvasElement) => {
-        html2canvas(canvasElement).then((canvas) => {
-          const base64image = canvas.toDataURL("image/png");
-          const screenshotJSON = {
-            image: imageData
-          };
-
-          // Save the JSON object to a file
-          const jsonBlob = new Blob([JSON.stringify(screenshotJSON)], {
-            type: "application/json"
-          });
-          const downloadLink = document.createElement("a");
-          downloadLink.href = URL.createObjectURL(jsonBlob);
-          downloadLink.download = "screenshot.json";
-          downloadLink.click();
-        });
-      };
 
       init();
       animate();
