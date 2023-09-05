@@ -92,15 +92,16 @@ TODO:
       import {
         Brush,
         Evaluator,
-        //ADDITION,
-        SUBTRACTION,
-        INTERSECTION
-        //DIFFERENCE
+        //ADDITION              // A ∪ B
+        SUBTRACTION, // A - B 1
+        REVERSE_SUBTRACTION, // B - A 2
+        DIFFERENCE, // A ⊕ B 3
+        INTERSECTION // A ∩ B
       } from "three-bvh-csg";
-      import html2canvas from "https://cdn.skypack.dev/html2canvas";
+      //import html2canvas from "https://cdn.skypack.dev/html2canvas";
 
       const params = {
-        operation: INTERSECTION,
+        operation: 3,
         wireframe: false,
         displayBrushes: false,
         shadows: true,
@@ -432,7 +433,7 @@ TODO:
         pitcherBrush.rotation.y = 20 * (Math.PI / 180);
         pitcherBrush.rotation.z = 190 * (Math.PI / 180);
 
-        pitcherBrush.position.set(0, 0, -3);
+        pitcherBrush.position.set(0.5, -0.5, -3);
         pitcherBrush.scale.set(0.5, 0.5, 0.5);
 
         surfaceSampler = new MeshSurfaceSampler(pitcherBrush);
@@ -481,8 +482,8 @@ TODO:
             polygonOffsetFactor: 1
           })
         );
-        brush.scale.set(0.02, 0.02, 0.02);
-        brush.position.set(0.2, 0, -3);
+        brush.scale.set(0.02, 0.09, 0.05);
+        brush.position.set(0.2, 0, -2.5);
         brush.rotation.x = (90 * Math.PI) / 180;
         brush.updateMatrixWorld();
 
@@ -510,7 +511,7 @@ TODO:
           ARdownloadButton.addEventListener("pointerdown", downloadPitcher);
 
           scene.background = null;
-          if (params.operation === 4) {
+          if (params.operation === 3) {
             params.operation = 1;
           }
           isAR = renderer.xr.isPresenting;
@@ -549,12 +550,16 @@ TODO:
       const rotatePitcher = () => {
         if (pitcherBrush) {
           const t = window.performance.now() + 9000;
-          pitcherBrush.rotation.z = t * -0.001;
+          pitcherBrush.rotation.z = t * -0.0002;
+          //pitcherBrush.rotation.x = t * 0.0001;
+          //pitcherBrush.rotation.y = t * 0.0001;
           pitcherBrush.updateMatrixWorld();
         }
         if (brush) {
           const t = window.performance.now() + 9000;
-          brush.rotation.y = t * -0.0001;
+          brush.rotation.y = t * -0.0005;
+          brush.rotation.x = t * -0.0000005;
+          brush.rotation.z = t * -0.00005;
           brush.updateMatrixWorld();
         }
       };
